@@ -1,5 +1,6 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import axios from "axios";
+import './App.css';
 
 const API_BASE = "http://localhost:8000/api"; // ajuste conforme necessário
 
@@ -9,10 +10,14 @@ function App() {
     const [round, setRound] = useState(1);
     const [playerScore, setPlayerScore] = useState(0);
     const [aiScore, setAiScore] = useState(0);
+    const [predictedClass, setPredictedClass] = useState("");
+    const [expectedClass, setExpectedClass] = useState("");
     const [message, setMessage] = useState("");
     const [gameOver, setGameOver] = useState(false);
     const [finalWinner, setFinalWinner] = useState("");
     const [hoveredIndex, setHoveredIndex] = useState(null);
+
+    const brands = ["Adidas", "Converse", "Nike"];
 
     const startGame = async () => {
         try {
@@ -30,9 +35,22 @@ function App() {
         setPlayerScore(data.player_score);
         setAiScore(data.ai_score);
         setImages(data.images);
+        data.predicted_class ? setPredictedClass(data.predicted_class) : null;
+        data.expected_class ? setExpectedClass(data.expected_class) : null;
         setGameOver(data.game_over);
         setFinalWinner(data.final_winner || "");
     };
+
+    useEffect(() => {
+        console.log("Round atual:", round);
+        if (round > 1) {
+            if (predictedClass === expectedClass) {
+                setMessage(`Marca Identificada: ${brands[predictedClass]}`);
+            } else {
+                setMessage(`Marca Esperada: ${brands[predictedClass]}        Marca Identificada: ${brands[expectedClass]}`);
+            }
+        }
+    }, [round, predictedClass, expectedClass]);
 
     const play = async (imageName) => {
         try {
@@ -40,12 +58,19 @@ function App() {
                 image_chosen: imageName,
             });
             updateStateFromResponse(res.data);
-            setMessage(
-                `Você escolheu: ${imageName}. Resultado: ${res.data.winner === "player" ? "Você ganhou!" : "A IA ganhou!"}`
-            );
         } catch (err) {
             alert(err.response?.data?.detail || "Erro ao jogar");
         }
+    };
+
+    const goBack = () => {
+        setGameStarted(false);
+        setRound(1);
+        setPlayerScore(0);
+        setAiScore(0);
+        setMessage("");
+        setGameOver(false);
+        setFinalWinner("");
     };
 
     if (!gameStarted) {
@@ -92,15 +117,17 @@ function App() {
 
             {gameOver ? (
                 <div>
-                    <h2 className="text-xl font-bold text-red-600">
+                    <h2 className="game-over">
                         Fim de jogo! Vencedor: {finalWinner}
                     </h2>
-                    <button
-                        onClick={startGame}
-                        className="mt-4 px-4 py-2 bg-green-500 text-white rounded"
-                    >
-                        Jogar novamente
-                    </button>
+                    <div className="buttons">
+                        <button onClick={startGame} className="btn-play-again">
+                            Jogar novamente
+                        </button>
+                        <button onClick={goBack} className="btn-go-back">
+                            Voltar ao início
+                        </button>
+                    </div>
                 </div>
             ) : (
                 <div style={{display: "flex", justifyContent: "center", gap: "16px", marginTop: "20px"}}>
@@ -113,8 +140,8 @@ function App() {
                                 onMouseEnter={() => setHoveredIndex(index)}
                                 onMouseLeave={() => setHoveredIndex(null)}
                                 style={{
-                                    width: "160px",
-                                    height: "160px",
+                                    width: "200px",
+                                    height: "200px",
                                     objectFit: "cover",
                                     cursor: "pointer",
                                     border: "1px solid #ccc",

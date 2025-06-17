@@ -1,0 +1,54 @@
+body {
+    background: linear-gradient(135deg, #0a0f1a, #1c1f2a); /* Gradiente de azul escuro */
+    color: #fff; /* Texto branco para contraste */
+    font-family: 'Arial', sans-serif; /* Fonte simples */
+    margin: 0;
+    padding: 0;
+    height: 100vh; /* Garantir que ocupe a tela toda */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-size: 400% 400%; /* Efeito de movimentação no gradiente */
+    animation: gradientShift 15s ease infinite; /* Animação do gradiente */
+}
+
+.game-over {
+    text-align: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: #e11d48; /* Vermelho */
+    margin-bottom: 20px;
+}
+
+.buttons {
+    margin-top: 20px;
+    display: flex;
+    gap: 20px;
+}
+
+button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 16px;
+    transition: background-color 0.3s ease;
+}
+
+.btn-play-again {
+    background-color: #10b981;
+    color: white;
+}
+
+.btn-play-again:hover {
+    background-color: #059669;
+}
+
+.btn-go-back {
+    background-color: #6b7280;
+    color: white;
+}
+
+.btn-go-back:hover {
+    background-color: #4b5563;
+}
