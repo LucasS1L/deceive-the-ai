@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import './App.css';
 
-const API_BASE = "http://localhost:8000/api"; // ajuste conforme necessário
+const API_BASE = "http://localhost:8000/api";
 
 function App() {
     const [gameStarted, setGameStarted] = useState(false);
@@ -16,17 +16,21 @@ function App() {
     const [gameOver, setGameOver] = useState(false);
     const [finalWinner, setFinalWinner] = useState("");
     const [hoveredIndex, setHoveredIndex] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     const brands = ["Adidas", "Converse", "Nike"];
 
     const startGame = async () => {
+        setIsLoading(true);
         try {
             const res = await axios.post(`${API_BASE}/start-game`);
             updateStateFromResponse(res.data);
             setGameStarted(true);
-            setMessage("Jogo iniciado! Escolha uma imagem.");
+            setMessage("Jogo iniciado!");
         } catch (err) {
             alert("Erro ao iniciar o jogo.");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -42,17 +46,17 @@ function App() {
     };
 
     useEffect(() => {
-        console.log("Round atual:", round);
         if (round > 1) {
             if (predictedClass === expectedClass) {
-                setMessage(`Marca Identificada: ${brands[predictedClass]}`);
+                setMessage(`🎯 IA acertou! Marca identificada: ${brands[predictedClass]}`);
             } else {
-                setMessage(`Marca Esperada: ${brands[predictedClass]}        Marca Identificada: ${brands[expectedClass]}`);
+                setMessage(`🎉 Você enganou a IA! Esperado: ${brands[expectedClass]} | Identificado: ${brands[predictedClass]}`);
             }
         }
     }, [round, predictedClass, expectedClass]);
 
     const play = async (imageName) => {
+        setIsLoading(true);
         try {
             const res = await axios.post(`${API_BASE}/play`, {
                 image_chosen: imageName,
@@ -60,6 +64,8 @@ function App() {
             updateStateFromResponse(res.data);
         } catch (err) {
             alert(err.response?.data?.detail || "Erro ao jogar");
+        } finally {
+            setIsLoading(false);
         }
     };
 
@@ -75,83 +81,168 @@ function App() {
 
     if (!gameStarted) {
         return (
-            <div
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    minHeight: "100vh",
-                    fontFamily: "sans-serif",
-                    padding: "1.5rem",
-                }}
-            >
-                <h1 className="text-4xl font-bold mb-6">Bem-vindo ao Jogo!</h1>
-                <p className="text-lg mb-4">Tente enganar a IA escolhendo a imagem certa.</p>
-                <button
-                    onClick={startGame}
-                    className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
-                >
-                    Iniciar Jogo
-                </button>
+            <div className="welcome-screen">
+                <div className="welcome-content">
+                    <div className="logo-container">
+                        <div className="logo-icon">🤖</div>
+                        <h1 className="game-title">Deceive the AI</h1>
+                    </div>
+                    <p className="game-description">
+                        Desafie a inteligência artificial! Escolha imagens de tênis e tente enganar
+                        o sistema de reconhecimento. Será que você consegue confundir a IA?
+                    </p>
+                    <div className="brands-info">
+                        <h3>Marcas no jogo:</h3>
+                        <div className="brand-tags">
+                            <span className="brand-tag adidas">Adidas</span>
+                            <span className="brand-tag nike">Nike</span>
+                            <span className="brand-tag converse">Converse</span>
+                        </div>
+                    </div>
+                    <button
+                        className="start-button"
+                        onClick={startGame}
+                        disabled={isLoading}
+                    >
+                        {isLoading ? (
+                            <>
+                                <div className="spinner"></div>
+                                Iniciando...
+                            </>
+                        ) : (
+                            <>
+                                <span>🚀</span>
+                                Iniciar Jogo
+                            </>
+                        )}
+                    </button>
+                </div>
             </div>
         );
     }
 
     return (
-        <div
-            style={{
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                minHeight: "100vh",
-                fontFamily: "sans-serif",
-                padding: "1.5rem",
-            }}
-        >
-            <h1 className="text-3xl font-bold mb-4">Deceive the AI</h1>
-            <p className="mb-2">Rodada: {round}</p>
-            <p className="mb-2">Placar - Jogador: {playerScore} | IA: {aiScore}</p>
-            <p className="mb-4 text-blue-600">{message}</p>
+        <div className="game-screen">
+            <div className="game-header">
+                <h1 className="game-title-small">
+                    <span className="ai-icon">🤖</span>
+                    Deceive the AI
+                </h1>
+
+                <div className="game-stats">
+                    <div className="round-info">
+                        <span className="round-label">Rodada</span>
+                        <span className="round-number">{round}</span>
+                    </div>
+
+                    <div className="score-board">
+                        <div className="score-item player">
+                            <span className="score-label">👤 Você</span>
+                            <span className="score-value">{playerScore}</span>
+                        </div>
+                        <div className="score-divider">×</div>
+                        <div className="score-item ai">
+                            <span className="score-label">🤖 IA</span>
+                            <span className="score-value">{aiScore}</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            {message && (
+                <div className={`message-box ${predictedClass === expectedClass ? 'ai-win' : 'player-win'}`}>
+                    <p>{message}</p>
+                </div>
+            )}
 
             {gameOver ? (
-                <div>
-                    <h2 className="game-over">
-                        Fim de jogo! Vencedor: {finalWinner}
-                    </h2>
-                    <div className="buttons">
-                        <button onClick={startGame} className="btn-play-again">
-                            Jogar novamente
-                        </button>
-                        <button onClick={goBack} className="btn-go-back">
-                            Voltar ao início
-                        </button>
+                <div className="game-over-screen">
+                    <div className="game-over-content">
+                        <div className="winner-announcement">
+                            <div className="winner-icon">
+                                {finalWinner === "Jogador" ? "🏆" : "🤖"}
+                            </div>
+                            <h2 className="winner-title">
+                                {finalWinner === "Jogador" ? "Parabéns!" : "IA Venceu!"}
+                            </h2>
+                            <p className="winner-subtitle">
+                                {finalWinner === "Jogador"
+                                    ? "Você conseguiu enganar a IA!"
+                                    : "A IA foi mais esperta desta vez!"
+                                }
+                            </p>
+                        </div>
+
+                        <div className="final-score">
+                            <div className="final-score-item">
+                                <span>👤 Você</span>
+                                <span>{playerScore}</span>
+                            </div>
+                            <div className="final-score-item">
+                                <span>🤖 IA</span>
+                                <span>{aiScore}</span>
+                            </div>
+                        </div>
+
+                        <div className="game-over-buttons">
+                            <button
+                                className="play-again-button"
+                                onClick={startGame}
+                                disabled={isLoading}
+                            >
+                                {isLoading ? (
+                                    <>
+                                        <div className="spinner"></div>
+                                        Iniciando...
+                                    </>
+                                ) : (
+                                    <>
+                                        <span>🔄</span>
+                                        Jogar Novamente
+                                    </>
+                                )}
+                            </button>
+                            <button className="back-button" onClick={goBack}>
+                                <span>🏠</span>
+                                Voltar ao Início
+                            </button>
+                        </div>
                     </div>
                 </div>
             ) : (
-                <div style={{display: "flex", justifyContent: "center", gap: "16px", marginTop: "20px"}}>
-                    {images.map((img, index) => (
-                        <div key={img} style={{textAlign: "center"}}>
-                            <img
-                                src={`http://localhost:8000/images/${img}`}
-                                alt={img}
-                                onClick={() => play(img)}
+                <div className="images-section">
+                    <h3 className="images-title">Escolha uma imagem para enganar a IA:</h3>
+                    <div className="images-grid">
+                        {images.map((img, index) => (
+                            <div
+                                key={img}
+                                className={`image-card ${hoveredIndex === index ? 'hovered' : ''} ${isLoading ? 'disabled' : ''}`}
+                                onClick={() => !isLoading && play(img)}
                                 onMouseEnter={() => setHoveredIndex(index)}
                                 onMouseLeave={() => setHoveredIndex(null)}
-                                style={{
-                                    width: "200px",
-                                    height: "200px",
-                                    objectFit: "cover",
-                                    cursor: "pointer",
-                                    border: "1px solid #ccc",
-                                    borderRadius: "8px",
-                                    opacity: hoveredIndex === index ? 0.75 : 1,
-                                    transition: "opacity 0.3s ease",
-                                }}
-                            />
+                            >
+                                <div className="image-container">
+                                    <img
+                                        src={`http://localhost:8000/images/${img}`}
+                                        alt={`Tênis ${index + 1}`}
+                                        className="sneaker-image"
+                                    />
+                                    <div className="image-overlay">
+                                        <span className="click-hint">Clique para escolher</span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+
+                    {isLoading && (
+                        <div className="loading-overlay">
+                            <div className="loading-content">
+                                <div className="spinner large"></div>
+                                <p>IA analisando sua escolha...</p>
+                            </div>
                         </div>
-                    ))}
+                    )}
                 </div>
             )}
         </div>
