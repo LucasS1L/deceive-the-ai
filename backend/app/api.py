@@ -9,17 +9,6 @@ router = APIRouter()
 class ImageChoice(BaseModel):
     image_chosen: str
 
-@router.get("/predict/{image_name}")
-def predict(image_name: str):
-    try:
-        prediction = predict_image_class(image_name)
-        return {"class": prediction}
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Image not found")
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @router.post("/start-game")
 def start_game():
     game.reset_game()
