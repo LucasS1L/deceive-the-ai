@@ -16,8 +16,8 @@ function WelcomeScreen({ startGame, isLoading }) {
                     <h3>Marcas no jogo:</h3>
                     <div className="brand-tags">
                         <span className="brand-tag adidas">Adidas</span>
-                        <span className="brand-tag nike">Nike</span>
                         <span className="brand-tag converse">Converse</span>
+                        <span className="brand-tag nike">Nike</span>
                     </div>
                 </div>
                 <button className="start-button" onClick={startGame} disabled={isLoading}>
