@@ -39,6 +39,12 @@ def play_round(image: ImageChoice):
         
         if game.is_game_over():
             raise HTTPException(status_code=422, detail="The game is over. You can't continue playing.")
+        
+        if image.image_chosen not in game.current_images:
+           raise HTTPException(
+               status_code=422,
+               detail="The chosen image is not part of the current round's options."
+           )
              
         expected_class = get_expected_class_from_filename(image.image_chosen)
         predicted_class = predict_image_class(image.image_chosen)
